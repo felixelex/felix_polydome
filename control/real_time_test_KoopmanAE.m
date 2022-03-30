@@ -2,12 +2,6 @@
 %=================           Koopman-based MPC           =================%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-% TODO:
-% - replace initialization code
-% - why do we go backwards in time?
-% - understand error handling
-% - change date in filename for saving
-
 % Clean up
 clearvars
 close all
