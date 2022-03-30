@@ -1,0 +1,27 @@
+http://www.soda-pro.com/web-services/meteo-data/merra
+
+https://gate.meteoswiss.ch/idaweb/system/ordersList.do
+
+polydome: 46.52147, 6.56899
+lausanne: 46.516 6.63282
+pully: 46.512283 6.667517
+LA: 46.5201, 6.5665
+
+
+Station ID:ILAUSA16
+Station Key:DuEX9DuE
+
+visualcrssong: hourly predcition, radiation
+
+tomorrow.io: radiation, prediction15 min- 6hr, 1h-108hr, 6hr past, current
+https://www.tomorrow.io/weather-api/ 
+https://docs.tomorrow.io/reference/get-timelines
+
+openweathermap. no radiation
+Minute forecast for 1 hour
+Hourly forecast for 48 hours
+
+solcast
+https://solcast.com/pricing/?&_ga=2.168294689.1434825511.1618565300-2042642560.1618436144#forecast
+
+https://solarwebservices.ch/
