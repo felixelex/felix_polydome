@@ -5,24 +5,61 @@ classdef OptKoopmanAEMPC < handle
         sys;
         N_ini; % Initial steps
         N_pred; % Prediction steps
-        x; u; y;
+        x; u; y; s;
         Constraints;
         Cost;
     end
     
     methods
-        % Methods signature
-        [z0, A, B_u, B_d, C] = get_koopman_representation(y0, d0, model)
+        function [z0, A, B_u, B_d, C] = get_koopman_representation(y0, d0, model)
+			% Function that calls the Koopman model in Python and returns the
+			% lifted state and Koopman operators.
+
+			%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+			%%%                   Write measurements to file                    %%%
+			%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+			data = struct("y0",y0,"d0",d0);
+			json = jsonencode(data);
+
+
+			fid = fopen('tmp\measurements.json', 'w');
+			fprintf(fid, '%s', json);
+			fclose(fid);
+
+			%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+			%%%                        Run Python script                        %%%
+			%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+			commandStr = '/Users/lucafabietti/Documents/Felix_polydome/proj_env/bin/python get_'+model+'_representation.py';
+			[status, commandOut] = system(commandStr);
+			if status ~= 0
+				error("=======Python error======" + commandOut);
+			end
+
+			%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+			%%%                   Get Output of python script                   %%%
+			%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+			jsonText = fileread('tmp\lifting.json');
+			data = jsondecode(jsonText);
+
+			z0 = data.z0;
+			A = data.A;
+			B_u = data.B_u;
+			B_d = data.B_d;
+			C = data.C;
+		end
 
         % Constructor
         function obj = OptKoopmanAEMPC(sys, N_ini, N_pred)
             obj.N_ini = N_ini;
             obj.N_pred = N_pred;
             obj.sys = sys;
-            obj.u = spdvar(N_pred, sys.n_u);
-            obj.x = spdvar(N_pred, sys.n_x);
-            obj.y = spdvar(N_pred, sys.n_y);
-            obj.s = spdvar(N_pred, sys.n_y);
+            obj.u = sdpvar(N_pred, sys.nu);
+            obj.x = sdpvar(N_pred, sys.nx);
+            obj.y = sdpvar(N_pred, sys.ny);
+            obj.s = sdpvar(N_pred, 2*sys.ny);
             obj.Constraints = [];
             obj.Cost = 0;
         end

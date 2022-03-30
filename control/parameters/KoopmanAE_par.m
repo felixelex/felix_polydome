@@ -5,8 +5,9 @@ function parameter = KoopmanAE_par(example)
 	parameter.str_ctr_type = 'Koopman_AE_MPC_Controller';
     parameter.model = "ae";
     
+	parameter.time_delay = 0; % Model time delay
     parameter.N_pred    = 10*900/parameter.Ts; % # of prediction steps
-    parameter.N_ini     = 10*900/parameter.Ts; % # of prediction steps
+    parameter.N_ini     = 2*900/parameter.Ts; % # of prediction steps
     parameter.T         = -1; % Obsolete parameter for us
     %UNDERSTAND: What does this parameteer stand for? total number of steps
     %has alread been defined in controller_par()

@@ -31,6 +31,7 @@ N_pred = parameter.N_pred;
 N_ini = parameter.N_ini;
 T = parameter.T; % T >= (nu + 1)*(N_ini + N_pred + nx) - 1 %UNDERSTANDING: What does this parameter represent? Total experiment time?
 Ts = parameter.Ts; % Sampling period
+time_delay = parameter.time_delay;
 
 nx = parameter.sys.nx;
 nu = parameter.sys.nu;
@@ -39,7 +40,9 @@ nw = parameter.sys.nw;
 
 T_experiment = parameter.T_experiment; % Number of closed-loop time steps
 w_cl = zeros(nw,T_experiment);
-u_cl = zeros(nu,T_experiment); x_cl = zeros(nx,T_experiment+1); y_cl = zeros(ny,T_experiment+1);
+u_cl = zeros(nu,T_experiment); 
+x_cl = zeros(nx,T_experiment+1); 
+y_cl = zeros(ny,T_experiment+1);
 
 %% Get initial state and input
 
@@ -54,7 +57,7 @@ what_year = year(current_time);what_month = month(current_time);what_day = day(c
 % Takes care of time drifting
 % The experiment starts at 18h00 (computing of first inpu at 17h59). The
 % initialization starts running N_ini time steps earlier.
-h = 17;
+h = 11; 
 min = 59;
 what_time_computing	= datenum(what_year, what_month, what_day, h, min, 10)-N_ini*Ts/86400;
 what_time_sending	= datenum(what_year, what_month,what_day, h, min, 50)-N_ini*Ts/86400;
@@ -104,7 +107,7 @@ end
 % --- Start/Restart from t = N_ini + 1 --- 
 
 t = N_ini+1;
-koopman_ae_controller.initialize_koopman_ae_controller();
+koopman_ae_controller.initialize_mpc_controller();
 
 % what_time_sending	= what_time_sending - Ts/86400;
 what_time_computing	= what_time_computing - Ts/86400;
@@ -146,7 +149,7 @@ while t <= T_experiment-N_pred
     % Update forecast of weather conditions
     koopman_ae_controller.get_disturbance();
     w_pred_tem = [koopman_ae_controller.last_forecast.temp; koopman_ae_controller.last_forecast.rad];
-    w_pred_tem = reshape(w_pred_tem, [nw*N_pred,1]);
+    w_pred_tem = reshape(w_pred_tem, [N_pred,nw]);
 	
 	cache.pred.air_temp(:,t) = koopman_ae_controller.last_forecast.temp';
 	cache.pred.rad(:,t) = (koopman_ae_controller.last_forecast.rad/1000.0)';
@@ -154,10 +157,10 @@ while t <= T_experiment-N_pred
 
     % update initial vectors %UNDERSTANDING: These data matrices are used
     % for building the Henkel matrix and are not necessary in our case
-    % right?
-    u_ini = reshape(u_cl(:,t-N_ini:t-1), [N_ini*nu,1]);
-    w_ini = reshape(w_cl(:,t-N_ini:t-1), [N_ini*nw,1]);
-    y_ini = reshape(y_cl(:,t-N_ini:t), [(N_ini+1)*ny,1]);
+    % right? Yes and no...
+    u_ini = reshape(u_cl(:,t-N_ini:t-1), [N_ini,nu]);
+    w_ini = reshape(w_cl(:,t-N_ini:t-1), [N_ini,nw]);
+    y_ini = reshape(y_cl(:,t-N_ini:t), [(N_ini+1),ny]);
        
     % Call the actual computation function for the controller 
     % (real-time controller should be implemented inside). The
@@ -166,30 +169,28 @@ while t <= T_experiment-N_pred
     disp('*============================================*')
     fprintf('===Iteration %d, Step 3: compute input \n', t);
 	fprintf('Time now is: %s \n', datestr(now))
-    try
-        % Robust MPC
-        koopman_ae_controller.initialize_koopman_ae_controller(); % Create OptKoopmanAEMPC obj
-        koopman_ae_controller.set_koopman_ae() % Adding cost and constraints
-        koopman_ae_controller.get_koopman_representation(y_ini, w_ini, parameter.model) % Get lifting and Koopman operators
-        [u_opt_tem, u_seq, y_seq] = koopman_ae_controller.solve(t, u_ini, w_ini, y_ini, w_pred_tem);        
-    catch e1
-        try
-            % Using MPC as a fallback when robust MPC is not working.
-            fprintf(2,'Error 1. The message was:\n%s',e1.message);
-            koopman_ae_controller.set(1) % TODO: Understand error handling!
-            [u_opt_tem, u_seq, y_seq] = koopman_ae_controller.solve(t,u_ini, w_ini, y_ini, w_pred_tem);     
-            cache.koopman.backup(:,t) = 1;
-        catch e2
-            % Using default controller, if robust MPC and standard MPC are
-            % not working.
-            fprintf(2,'Error 2. The message was:\n%s',e2.message);
-            koopman_ae_controller.initialize_deepc_noise_TV(t); %TODO: change this!
-            koopman_ae_controller.set_deepc_noise("adaptive")
-            [u_opt_tem, u_seq, y_seq] = koopman_ae_controller.solve(t, u_ini, w_ini, y_ini, w_pred_tem);
-            cache.koopman.backup(:,t) = 2;
-        end
-    end   
-    
+%     try
+%         % Robust MPC
+%         koopman_ae_controller.initialize_koopman_ae_controller(); % Create OptKoopmanAEMPC obj
+%         koopman_ae_controller.set_koopman_ae() % Adding cost and constraints
+%         koopman_ae_controller.get_koopman_representation(y_ini, w_ini, parameter.model) % Get lifting and Koopman operators
+%         [u_opt_tem, u_seq, y_seq] = koopman_ae_controller.solve(t, u_ini, w_ini, y_ini, w_pred_tem);        
+%     catch e1
+%         try
+%             disp("Primary controller failed with message: " + e1);
+% 			assert False
+% 			% TODO: Implement Fallback controller.
+%         catch e2
+%             % TODO: Implement Fallback controller.
+%         end
+%     end   
+	
+	% Robust MPC
+	koopman_ae_controller.initialize_mpc_controller(); % Create OptKoopmanAEMPC obj
+	koopman_ae_controller.get_koopman_representation(y_ini, w_ini, parameter.model) % Get lifting and Koopman operators
+	koopman_ae_controller.set_mpc_controller(w_pred_tem) % Adding cost and constraints
+	[u_opt_tem, u_seq, y_seq] = koopman_ae_controller.solve(t, u_ini, w_ini, y_ini, w_pred_tem);  
+
     % Check the input
     if u_opt_tem > 6
         cache.koopman.u_sp(:,t) = u_opt_tem;

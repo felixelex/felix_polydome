@@ -8,6 +8,7 @@ function [z0, A, B_u, B_d, C] = get_koopman_representation(y0, d0, model)
 
     s = struct("y0",y0,"d0",d0);
     json = jsonencode(s);
+	
 
     fid = fopen('tmp\measurements.json', 'w');
     fprintf(fid, '%s', json);
@@ -17,7 +18,7 @@ function [z0, A, B_u, B_d, C] = get_koopman_representation(y0, d0, model)
     %%%                        Run Python script                        %%%
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-    commandStr = 'C:\Users\fhp\Anaconda3\envs\proj_env\python.exe get_'+model+'_representation.py';
+    commandStr = '/Users/lucafabietti/Documents/Felix_polydome/proj_env/bin/python get_'+model+'_representation.py';
     [status, commandOut] = system(commandStr);
     if status ~= 0
         error("=======Python error======" + commandOut);

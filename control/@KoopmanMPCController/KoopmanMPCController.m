@@ -12,6 +12,7 @@ classdef KoopmanMPCController < Controller
         last_dist % last measured disturbance
         last_mode
         mode_count
+		opt_koopman_ae;
     end
 
 	methods
@@ -40,11 +41,11 @@ classdef KoopmanMPCController < Controller
             input = lower_bound + (upper_bound-lower_bound)*rand;
         end
 
-        function initialize_koopman_ae_controller(obj)
-            obj.opt_koopman_ae = OptKoopmanAEMPC(obj.sys, obj.N_ini, obj.N_pred, obj.T);
+        function initialize_mpc_controller(obj)
+            obj.opt_koopman_ae = OptKoopmanAEMPC(obj.sys, obj.N_ini, obj.N_pred);
         end         
            
-        function set_koopman_ae(obj, w)
+        function set_mpc_controller(obj, w)
             % Input:
             %   u_ini, y_ini: intial input and output sequence
             
