@@ -16,9 +16,10 @@ function parameter = KoopmanAE_par(example)
     % real system
     if example == 0
         nu = 1; % HP electrical power
-        nx = 3;
+        nz = 6;
         ny = 1;
         nw = 2;
+		nx = 4;
 
         % Matrix in stage cost
         Q = 0*eye(1);
@@ -70,10 +71,12 @@ function parameter = KoopmanAE_par(example)
     
     parameter.sys.Q = Q;
     parameter.sys.R = R;
+	parameter.sys.S = S;
     parameter.sys.r = r;
-    parameter.sys.nx = nx;
     parameter.sys.ny = ny;
     parameter.sys.nu = nu;
+	parameter.sys.nz = nz;
+	parameter.sys.nx = nx;
     parameter.sys.Y = Y;  
     
 end%%

@@ -1,10 +1,14 @@
-from koopman.koopman import AEEncoder, KoopmanModel, KoopmanOperator
-from koopman.trainer import Trainer
+import sys
+sys.path.insert(0,"/KoopmanAE/koopman")
+
 from sklearn.preprocessing import MinMaxScaler
+import numpy as np
 import json
 import torch
+from koopman.koopman import AEEncoder, KoopmanModel, KoopmanOperator
+from koopman.trainer import Trainer
 
-model_path = "trained_models/AE_td0_Polydome.pt"
+model_path = "KoopmanAE/trained_models/AE_td0_Polydome.pt"
 
 def get_ae_representation():
     """ Function that can be called from Matlab script to get Koopman operators 
@@ -14,21 +18,21 @@ def get_ae_representation():
     ### 0. get measurements from json file 
     ############################################################################
 
-    json_file = open("tmp/measurements.json")
+    json_file = open("KoopmanAE/tmp/measurements.json")
     vars = json.load(json_file)
     json_file.close()
 
-    y0 = vars["y0"]
-    d0 = vars["d0"]
+    y0 = np.array(vars["y0"])
+    d0 = np.array(vars["d0"])
 
     ############################################################################
     ### 1. Load model
     ############################################################################
 
-    n_x, n_d, n_u = 5, 2, 1
-    n_z, n_y = 10, 1
+    n_x, n_d, n_u = 4, 2, 1
+    n_z, n_y = 6, 1
     time_delay = 0
-    w = 128
+    w = 16
     n_layers = 2
 
     hidden_layers = [w]*(n_layers-1)
@@ -55,17 +59,17 @@ def get_ae_representation():
     ### 2. Lift data & get values
     ############################################################################
 
-    state_scaler, dist_scaler = MinMaxScaler(), MinMaxScaler(), MinMaxScaler()
+    state_scaler, dist_scaler = MinMaxScaler(), MinMaxScaler()
 
     state_scaler.__dict__ = ae_model.state_scaler
     dist_scaler.__dict__ = ae_model.dist_scaler
 
-    y0 = state_scaler.transform(y0)
-    d0 = dist_scaler.transform(d0)
-
     # Adding batch dimension
     y0 = y0.reshape(1, -1)
     d0 = d0.reshape(1, -1)
+
+    y0 = state_scaler.transform(y0)
+    d0 = dist_scaler.transform(d0)
 
     y0 = torch.Tensor(y0)
     d0 = torch.Tensor(d0)
@@ -92,7 +96,7 @@ def get_ae_representation():
     
     json_string = json.dumps(data)
 
-    with open('tmp/lifting.json', 'w') as outfile:
+    with open('KoopmanAE/tmp/lifting.json', 'w') as outfile:
         outfile.write(json_string)
 
 

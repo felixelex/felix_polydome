@@ -66,9 +66,9 @@ classdef KoopmanMPCController < Controller
         function [u_opt, u_opt_seq, y_opt_seq] = solve(obj)
             % Output:
             %   u_opt: input used in the closed loop system
-            [u_opt_seq, y_opt_seq, g_opt, slack_opt] = obj.opt_koopman_ae.solve();
+            [u_opt_seq, y_opt_seq] = obj.opt_koopman_ae.solve();
             obj.soltion_cache = struct(...
-                'u_opt_seq', u_opt_seq, 'y_opt_seq', y_opt_seq, 'g_opt', g_opt, 'slack_opt', slack_opt );
+                'u_opt_seq', u_opt_seq, 'y_opt_seq', y_opt_seq);
             u_opt = u_opt_seq(:, 1);
         end        
 		%

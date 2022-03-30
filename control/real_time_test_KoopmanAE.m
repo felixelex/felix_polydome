@@ -33,15 +33,17 @@ T = parameter.T; % T >= (nu + 1)*(N_ini + N_pred + nx) - 1 %UNDERSTANDING: What 
 Ts = parameter.Ts; % Sampling period
 time_delay = parameter.time_delay;
 
-nx = parameter.sys.nx;
+nz = parameter.sys.nz;
 nu = parameter.sys.nu;
 ny = parameter.sys.ny;
 nw = parameter.sys.nw;
+nx = parameter.sys.nx;
 
 T_experiment = parameter.T_experiment; % Number of closed-loop time steps
 w_cl = zeros(nw,T_experiment);
 u_cl = zeros(nu,T_experiment); 
-x_cl = zeros(nx,T_experiment+1); 
+z_cl = zeros(nz,T_experiment+1);
+x_cl = zeros(nx,T_experiment+1);
 y_cl = zeros(ny,T_experiment+1);
 
 %% Get initial state and input
@@ -186,10 +188,10 @@ while t <= T_experiment-N_pred
 %     end   
 	
 	% Robust MPC
+	koopman_ae_controller.get_koopman_representation(y_ini(end-time_delay,:), w_ini(end-time_delay,:), parameter.model) % Get lifting and Koopman operators
 	koopman_ae_controller.initialize_mpc_controller(); % Create OptKoopmanAEMPC obj
-	koopman_ae_controller.get_koopman_representation(y_ini, w_ini, parameter.model) % Get lifting and Koopman operators
 	koopman_ae_controller.set_mpc_controller(w_pred_tem) % Adding cost and constraints
-	[u_opt_tem, u_seq, y_seq] = koopman_ae_controller.solve(t, u_ini, w_ini, y_ini, w_pred_tem);  
+	[u_opt_tem, u_seq, y_seq] = koopman_ae_controller.solve();  
 
     % Check the input
     if u_opt_tem > 6
@@ -204,8 +206,6 @@ while t <= T_experiment-N_pred
 	fprintf('Time now is: %s \n' ,datestr(now))
 	
 	solution = koopman_ae_controller.soltion_cache;
-
-	parameter.sys.r(t:t+N_pred-1)
 
 	cache.koopman.u_opt_seq(:,t) = solution.u_opt_seq';
 	cache.koopman.y_opt_seq(:,t) = solution.y_opt_seq';
