@@ -1,3 +1,5 @@
 *.m~
 
 __pycache__/
+
+proj_env/
