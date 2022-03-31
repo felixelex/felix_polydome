@@ -24,7 +24,7 @@ classdef OptKoopmanAEMPC < handle
             obj.Cost = 0;
         end
 		
-		function [z0, A, B_u, B_d, C] = get_koopman_representation(obj, y0, d0, model)
+		function [z0, A, B_u, B_d, C] = get_koopman_representation(obj, x0, d0, model)
 			% Function that calls the Koopman model in Python and returns the
 			% lifted state and Koopman operators.
 
@@ -32,11 +32,11 @@ classdef OptKoopmanAEMPC < handle
 			%%%                   Write measurements to file                    %%%
 			%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-			data = struct('y0',y0,'d0',d0);
-			json = jsonencode(data);
+			data = struct('x0',x0,'d0',d0);
+			json = string(jsonencode(data));
 
 
-			fid = fopen('tmp\measurements.json', 'w');
+			fid = fopen('KoopmanAE/tmp/measurements.json', 'w');
 			fprintf(fid, '%s', json);
 			fclose(fid);
 
@@ -66,7 +66,13 @@ classdef OptKoopmanAEMPC < handle
                
         function add_constraints(obj, w)
         %ADD_CONSTRAINT Defines constraints for optimization problem.
-            
+		
+			w_min = obj.sys.w_min;
+			w_scale = obj.sys.w_scale;
+			
+			w = w .* w_scale;
+			w = w + w_min;
+			
             con = [];
             % First iteration
 			con = con + (obj.z(1,:) == obj.sys.z0); %Initial condition
@@ -107,8 +113,6 @@ classdef OptKoopmanAEMPC < handle
  
         function [u_opt_seq, y_opt_seq] = solve(obj)
         %SOLVE Finds solution to constraint optimization problem.
-            u_opt_seq = [];
-            y_opt_seq = [];
             options = sdpsettings('verbose',1,'solver', 'gurobi','gurobi.TimeLimit', 10);
             optimize(obj.Constraints, obj.Cost, options);
 %             if double(obj.u(:,1)) == 0 || isnan(double(obj.u(:,1))) 

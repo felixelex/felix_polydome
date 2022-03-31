@@ -13,9 +13,9 @@ function signal = get_disturbance(obj)
         [temp_cur,rad_cur,temp_pred,rad_pred] = get_weather_from_api(obj.N_pred);
         
         obj.last_dist.temp = temp_cur;
-        obj.last_dist.rad = rad_cur/10000.0;
+        obj.last_dist.rad = rad_cur;%/10000.0;
         obj.last_forecast.temp = removeOutliers(temp_pred);
-        obj.last_forecast.rad = removeOutliers(rad_pred)/10000.0;
+        obj.last_forecast.rad = removeOutliers(rad_pred);%/10000.0;
         fprintf('Air temperature, current: %d, prediction: max %d, min %d \n', obj.last_dist.temp,...
             max(obj.last_forecast.temp),...
             min(obj.last_forecast.temp)); 

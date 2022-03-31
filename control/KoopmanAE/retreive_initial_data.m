@@ -1,4 +1,4 @@
-function [y,u,w,m] = retreive_initial_data( t0, tf )
+function [y,x,u,w,m] = retreive_initial_data( t0, tf )
 %Retreives all relevant data for Polydome from InfluxDB
 %   INPUT:	- t0: initial time instant in epoch time
 %			- tf: final time instant in epoch time
@@ -36,6 +36,19 @@ function [y,u,w,m] = retreive_initial_data( t0, tf )
             datestr(y.time(1),'dd-mmm-yyyy HH:MM:SS'),...
 			datestr(y.time(end),'dd-mmm-yyyy HH:MM:SS')) 
 		
+	%% Other measurements from the system (return and supply temperature, ...)
+	[sensor_return_temp, ~, t_sensor_return_temp] = read_valuelist_from_influxdb('HVAC', {'register'}, {'TEMP_RIPR'}, t0, tf);
+	sensor_return_temp = removeOutliers(sensor_return_temp);
+	[sensor_supply_temp, ~, ~] = read_valuelist_from_influxdb('HVAC', {'register'}, {'TEMP_MAND'}, t0,tf);
+	sensor_supply_temp = removeOutliers(sensor_supply_temp);
+	[sensor_supply_flow, ~, ~] = read_valuelist_from_influxdb('HVAC', {'register'}, {'PORTATA_ARIA_Supply'}, t0,tf);
+	sensor_supply_flow = removeOutliers(sensor_supply_flow);
+	
+	
+	x.time = t_sensor_return_temp(1)/86400+datenum(1970,1,1);
+	x.value = [y.value, sensor_supply_temp(1), sensor_return_temp(1), sensor_supply_flow(1)];
+	x.unit = '[C^0], [C^0], [C^0], [m3/h/10]'; 
+		
 	%% Power
 	[power, ~, t_power] = read_valuelist_from_influxdb('HP_Active_Power', {}, {}, t0,tf, 'Power');
 % 	power = removeOutliers(power);
@@ -66,8 +79,8 @@ function [y,u,w,m] = retreive_initial_data( t0, tf )
 		
 	% Solar Radiation
 	data.solar_GHI.time = t_solar_rad/86400+datenum(1970,1,1);
-	data.solar_GHI.value = solar_rad/1000.0;
-	data.solar_GHI.unit = '[kW/m^2]';
+	data.solar_GHI.value = solar_rad; %/1000.0;
+	data.solar_GHI.unit = '[W/m^2]'; %'[kW/m^2]';
     
 	fprintf('Reading variable "%s" in InfluxDB, from time %s to time %s at time zone UTC \n', 'solar radiation', ...
             datestr(data.solar_GHI.time(1),'dd-mmm-yyyy HH:MM:SS'),...

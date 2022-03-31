@@ -54,8 +54,8 @@ classdef KoopmanMPCController < Controller
             obj.opt_koopman_ae.compute_cost();
         end     
         
-        function get_koopman_representation(obj, y0, d0, model)
-            [z0, A, B_u, B_d, C] = obj.opt_koopman_ae.get_koopman_representation(y0, d0, model);
+        function get_koopman_representation(obj, x0, d0, model)
+            [z0, A, B_u, B_d, C] = obj.opt_koopman_ae.get_koopman_representation(x0, d0, model);
             obj.sys.z0 = z0;
             obj.sys.A = A;
             obj.sys.B = B_u;
@@ -69,7 +69,7 @@ classdef KoopmanMPCController < Controller
             [u_opt_seq, y_opt_seq] = obj.opt_koopman_ae.solve();
             obj.soltion_cache = struct(...
                 'u_opt_seq', u_opt_seq, 'y_opt_seq', y_opt_seq);
-            u_opt = u_opt_seq(:, 1);
+            u_opt = u_opt_seq(1, :);
         end        
 		%
 	end%%

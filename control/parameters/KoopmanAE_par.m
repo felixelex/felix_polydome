@@ -67,8 +67,11 @@ function parameter = KoopmanAE_par(example)
         parameter.sys.W = W;
         parameter.sys.nw = nw;  
         
-    end
+	end
     
+	parameter.sys.w_min = [-0.04421053, 0];
+	parameter.sys.w_scale = [0.07017544, 0.0022418];
+	
     parameter.sys.Q = Q;
     parameter.sys.R = R;
 	parameter.sys.S = S;

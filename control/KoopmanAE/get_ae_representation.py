@@ -22,7 +22,7 @@ def get_ae_representation():
     vars = json.load(json_file)
     json_file.close()
 
-    y0 = np.array(vars["y0"])
+    x0 = np.array(vars["x0"])
     d0 = np.array(vars["d0"])
 
     ############################################################################
@@ -65,16 +65,16 @@ def get_ae_representation():
     dist_scaler.__dict__ = ae_model.dist_scaler
 
     # Adding batch dimension
-    y0 = y0.reshape(1, -1)
+    x0 = x0.reshape(1, -1)
     d0 = d0.reshape(1, -1)
 
-    y0 = state_scaler.transform(y0)
+    x0 = state_scaler.transform(x0)
     d0 = dist_scaler.transform(d0)
 
-    y0 = torch.Tensor(y0)
+    x0 = torch.Tensor(x0)
     d0 = torch.Tensor(d0)
 
-    z0, _ = ae_model.encoder.forward(y0, d0)
+    z0, _ = ae_model.encoder.forward(x0, d0)
     z0 = z0.detach().numpy()
 
     A = ae_model.koopman_operator.A.weight.detach().numpy()
