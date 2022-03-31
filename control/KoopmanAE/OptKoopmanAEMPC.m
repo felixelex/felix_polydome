@@ -16,7 +16,7 @@ classdef OptKoopmanAEMPC < handle
             obj.N_ini = N_ini;
             obj.N_pred = N_pred;
             obj.sys = sys;
-            obj.u = sdpvar(N_pred, sys.nu);
+            obj.u = sdpvar(N_pred-1, sys.nu);
             obj.z = sdpvar(N_pred, sys.nz);
             obj.y = sdpvar(N_pred, sys.ny);
             obj.s = sdpvar(N_pred, 2*sys.ny);
@@ -24,7 +24,7 @@ classdef OptKoopmanAEMPC < handle
             obj.Cost = 0;
         end
 		
-		function [z0, A, B_u, B_d, C] = get_koopman_representation(obj, x0, d0, model)
+		function [z0, A, B_u, B_d, C, T_min, T_scale] = get_koopman_representation(obj, x0, d0, model)
 			% Function that calls the Koopman model in Python and returns the
 			% lifted state and Koopman operators.
 
@@ -62,6 +62,8 @@ classdef OptKoopmanAEMPC < handle
 			B_u = data.B_u;
 			B_d = data.B_d;
 			C = data.C;
+			T_min = data.T_min;
+			T_scale = data.T_scale;
 		end
                
         function add_constraints(obj, w)
@@ -77,18 +79,21 @@ classdef OptKoopmanAEMPC < handle
             % First iteration
 			con = con + (obj.z(1,:) == obj.sys.z0); %Initial condition
             con = con + (obj.z(2,:) == (obj.sys.A*(obj.z(1,:)') + obj.sys.B*obj.u(1,:) + obj.sys.E*w(1,:)')'); %Dynamics
+			con = con + (obj.y(1,:) == obj.sys.C*(obj.z(1,:)')); %Output dynamics
             con = con + (obj.sys.U_heat.A*obj.u(1,:) <= obj.sys.U_heat.b); %Input constraints
-            con = con + (obj.sys.Y{1}.A*obj.y(1,:) <= obj.sys.Y{1}.b + diag([1 -1])*obj.s(1,:)'); %Output constraints
+            con = con + (obj.sys.Y{1}.A*((obj.y(1,:)-obj.sys.T_min)/obj.sys.T_scale) <= obj.sys.Y{1}.b + diag([1 -1])*obj.s(1,:)'); %Output constraints
             
             % Following iterations
             for i = 2:obj.N_pred-1
               con = con + (obj.z(i+1,:) == (obj.sys.A*(obj.z(i,:)') + obj.sys.B*obj.u(i,:) + obj.sys.E*w(i,:)')');
+			  con = con + (obj.y(i,:) == obj.sys.C*(obj.z(i,:)')); %Output dynamics
               con = con + (obj.sys.U_heat.A*obj.u(i,:) <= obj.sys.U_heat.b); %Input constraints
-              con = con + (obj.sys.Y{i}.A*obj.y(i,:) <= obj.sys.Y{i}.b + diag([1 -1])*obj.s(i,:)'); %Output constraints
+              con = con + (obj.sys.Y{i}.A*((obj.y(i,:)-obj.sys.T_min)/obj.sys.T_scale) <= obj.sys.Y{i}.b + diag([1 -1])*obj.s(i,:)'); %Output constraints
             end
             
             % Final iteration
-            con = con + (obj.sys.Y{obj.N_pred}.A*obj.y(obj.N_pred,:) <= obj.sys.Y{obj.N_pred}.b + diag([1 -1])*obj.s(obj.N_pred,:)');
+			con = con + (obj.y(obj.N_pred,:) == obj.sys.C*(obj.z(obj.N_pred,:)')); %Output dynamics
+            con = con + (obj.sys.Y{obj.N_pred}.A*((obj.y(obj.N_pred,:)-obj.sys.T_min)/obj.sys.T_scale) <= obj.sys.Y{obj.N_pred}.b + diag([1 -1])*obj.s(obj.N_pred,:)');
 
             obj.Constraints = con;
         end 
@@ -106,9 +111,10 @@ classdef OptKoopmanAEMPC < handle
             Q = obj.sys.Q;
             R = obj.sys.R;
             S = obj.sys.S;
-            for i=1:obj.N_pred
-                obj.Cost = obj.Cost + (obj.y(i,:)-r)'*Q*(obj.y(i,:)-r) + obj.u(i,:)'*R*obj.u(i,:) + obj.s(i,:)*S*obj.s(i,:)';
-            end 
+            for i=1:obj.N_pred-1
+                obj.Cost = obj.Cost + obj.u(i,:)'*R*obj.u(i,:) + obj.s(i,:)*S*obj.s(i,:)';
+			end 
+			obj.Cost = obj.Cost + obj.s(obj.N_pred,:)*S*obj.s(obj.N_pred,:)';
         end
  
         function [u_opt_seq, y_opt_seq] = solve(obj)
@@ -120,7 +126,7 @@ classdef OptKoopmanAEMPC < handle
 %                 optimize(obj.Constraints, obj.Cost, options);
 %             end      
 			u_opt_seq = [double(obj.u(:,:))];
-			y_opt_seq = [double(obj.y(:,:))];
+			y_opt_seq = (double(obj.y(:,:)) - obj.sys.T_min)/obj.sys.T_scale;
         end        
     end
 end

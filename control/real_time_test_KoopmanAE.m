@@ -57,8 +57,8 @@ fprintf('Experiment started on: %s at time zone %s \n', datestr(current_time,...
 what_year = year(current_time);what_month = month(current_time);what_day = day(current_time);
 
 % Start time of experiment
-h = 15; 
-min = 9;
+h = 18; 
+min = 5;
 what_time_start = datenum(what_year, what_month, what_day, h, min, 0);
 
 % Start of initialization (1min before experiment start)
@@ -222,7 +222,7 @@ while t <= T_experiment%-N_pred
 %         end
 %     end   
 	
-	% Robust MPC
+	% Soft-constraint MPC
 	koopman_ae_controller.get_koopman_representation(x_ini(end-time_delay,:), w_ini(end-time_delay,:), parameter.model) % Get lifting and Koopman operators
 	koopman_ae_controller.initialize_mpc_controller(); % Create OptKoopmanAEMPC obj
 	koopman_ae_controller.set_mpc_controller(w_pred_tem); % Adding cost and constraints

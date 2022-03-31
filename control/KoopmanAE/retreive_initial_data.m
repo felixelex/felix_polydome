@@ -18,13 +18,13 @@ function [y,x,u,w,m] = retreive_initial_data( t0, tf )
 	end
 
 	%% Indoor temperature from zwave sensor
-	[sensor_temp_1, ~, t_sensor_temp] = read_valuelist_from_influxdb('sensor_tem_3_temperature', {}, {}, t0, tf);
+	[sensor_temp_1, ~, t_sensor_temp] = read_valuelist_from_influxdb('sensor_tem_5_temperature', {}, {}, t0, tf);
 	sensor_temp_1 = removeOutliers(sensor_temp_1);
-	[sensor_temp_2, ~, ~] = read_valuelist_from_influxdb('sensor_tem_4_temperature', {}, {}, t0,tf);
+	[sensor_temp_2, ~, ~] = read_valuelist_from_influxdb('sensor_tem_6_temperature', {}, {}, t0,tf);
 	sensor_temp_2 = removeOutliers(sensor_temp_2);
-	[sensor_temp_3, ~, ~] = read_valuelist_from_influxdb('sensor_tem_6_temperature', {}, {}, t0, tf);
+	[sensor_temp_3, ~, ~] = read_valuelist_from_influxdb('sensor_tem_7_temperature', {}, {}, t0, tf);
 	sensor_temp_3 = removeOutliers(sensor_temp_3);
-	[sensor_temp_4, ~, ~] = read_valuelist_from_influxdb('sensor_tem_7_temperature', {}, {}, t0,tf);
+	[sensor_temp_4, ~, ~] = read_valuelist_from_influxdb('sensor_tem_8_temperature', {}, {}, t0,tf);
 	sensor_temp_4 = removeOutliers(sensor_temp_4);    
 	
 	y.time = t_sensor_temp/86400+datenum(1970,1,1);

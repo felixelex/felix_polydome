@@ -25,7 +25,7 @@ function parameter = KoopmanAE_par(example)
         Q = 0*eye(1);
         R = 0.1;
         r = 0; % no reference
-        S = 10; % soft constraints penalty
+        S = 1000; % soft constraints penalty
         
         T_tot = parameter.T_experiment;
         % Constraints
@@ -33,16 +33,17 @@ function parameter = KoopmanAE_par(example)
         for i = 1:T_tot
              if i <= parameter.N_ini
                  % Constraints during initialization
-                 by = [23; -21];
+                 by = [24; -20];
                  % r(i) = 21;
              else
                  if  mod(i - parameter.N_ini,96)<=56 && mod(i - parameter.N_ini,96)>=1
                      % Constraints during night
-                     by = [24; -20];
+                     % by = [26; -18];
+					 by = [26; -23];
                      % r(i) = 21;
                  else
                      % Constraints during day
-                     by = [23; -21];
+                     by = [24; -20];
                      % r(i) = 21;
                  end
              end
@@ -71,7 +72,7 @@ function parameter = KoopmanAE_par(example)
     
 	parameter.sys.w_min = [-0.04421053, 0];
 	parameter.sys.w_scale = [0.07017544, 0.0022418];
-	
+		
     parameter.sys.Q = Q;
     parameter.sys.R = R;
 	parameter.sys.S = S;

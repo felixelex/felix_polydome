@@ -55,12 +55,14 @@ classdef KoopmanMPCController < Controller
         end     
         
         function get_koopman_representation(obj, x0, d0, model)
-            [z0, A, B_u, B_d, C] = obj.opt_koopman_ae.get_koopman_representation(x0, d0, model);
+            [z0, A, B_u, B_d, C, T_min, T_scale] = obj.opt_koopman_ae.get_koopman_representation(x0, d0, model);
             obj.sys.z0 = z0;
             obj.sys.A = A;
             obj.sys.B = B_u;
             obj.sys.E = B_d;
             obj.sys.C = C;
+			obj.sys.T_min = T_min;
+			obj.sys.T_scale = T_scale;
         end
 
         function [u_opt, u_opt_seq, y_opt_seq] = solve(obj)

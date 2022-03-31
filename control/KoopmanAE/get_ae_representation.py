@@ -92,6 +92,8 @@ def get_ae_representation():
         'B_u': B_u.tolist(),
         'B_d': B_d.tolist(),
         'C': C.tolist(),
+        'T_min': state_scaler.min_[0],
+        'T_scale': state_scaler.scale_[0],
     }
     
     json_string = json.dumps(data)
