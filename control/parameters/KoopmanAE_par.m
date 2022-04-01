@@ -1,4 +1,4 @@
-function parameter = KoopmanAE_par(example)
+function parameter = KoopmanAE_par(example, what_time_start)
 %MPCCONTROLLER_PAR Set the parameters for the MPC controller
 	
 	parameter = controller_par(); %sets Ts to 900
@@ -9,8 +9,6 @@ function parameter = KoopmanAE_par(example)
     parameter.N_pred    = 10*900/parameter.Ts; % # of prediction steps
     parameter.N_ini     = 2*900/parameter.Ts; % # of prediction steps
     parameter.T         = -1; % Obsolete parameter for us
-    %UNDERSTAND: What does this parameteer stand for? total number of steps
-    %has alread been defined in controller_par()
     parameter.T_experiment = 24*11*60*60/parameter.Ts; % # of experiemt steps
             
     % real system
@@ -27,26 +25,22 @@ function parameter = KoopmanAE_par(example)
         r = 0; % no reference
         S = 1000; % soft constraints penalty
         
+		time = what_time_start;
+		
         T_tot = parameter.T_experiment;
         % Constraints
         Hy = [eye(1);-eye(1)];
         for i = 1:T_tot
-             if i <= parameter.N_ini
-                 % Constraints during initialization
-                 by = [24; -20];
-                 % r(i) = 21;
-             else
-                 if  mod(i - parameter.N_ini,96)<=56 && mod(i - parameter.N_ini,96)>=1
-                     % Constraints during night
-                     % by = [26; -18];
-					 by = [26; -23];
-                     % r(i) = 21;
-                 else
-                     % Constraints during day
-                     by = [24; -20];
-                     % r(i) = 21;
-                 end
-             end
+			 if  hour(time) >= 18 || hour(time) < 6
+				 % Constraints during night
+				 by = [26; -18];
+				 % r(i) = 21;
+			 else
+				 % Constraints during day
+				 by = [24; -20];
+				 % r(i) = 21;
+			 end
+			 time = time + 900/86400;
              Y{i} = Polyhedron('A', Hy, 'b', by);
         end
         val_u = 6.0; 

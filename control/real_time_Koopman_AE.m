@@ -13,8 +13,16 @@ addpath('./parameters')
 addpath('./KoopmanAE')
 addpath(genpath('../utilities'))
 
+% Start time of experiment
+h = 15; 
+min = 00;
+TimeZone = 'Europe/Zurich';
+current_time = datetime('now', 'TimeZone', TimeZone);
+what_year = year(current_time);what_month = month(current_time);what_day = day(current_time);
+what_time_start = datenum(what_year, what_month, what_day, h, min, 0);
+
 %% Getting global parameters
-parameter = KoopmanAE_par(0);
+parameter = KoopmanAE_par(0, what_time_start);
 % current_time = datetime('now');
 % what_year = year(current_time);
 % what_month = month(current_time);
@@ -46,20 +54,10 @@ x_cl = zeros(nx,T_experiment+1);
 y_cl = zeros(ny,T_experiment+1);
 
 %% Get initial state and input
-
-TimeZone = 'Europe/Zurich';
-current_time = datetime('now', 'TimeZone', TimeZone );
 disp('*============================================*')
 disp('*============================================*')
 fprintf('Experiment started on: %s at time zone %s \n', datestr(current_time,...
             'dd-mmm-yyyy HH:MM:SS'), TimeZone)      
-
-what_year = year(current_time);what_month = month(current_time);what_day = day(current_time);
-
-% Start time of experiment
-h = 18; 
-min = 5;
-what_time_start = datenum(what_year, what_month, what_day, h, min, 0);
 
 % Start of initialization (1min before experiment start)
 what_time_init = what_time_start - 60/86400;

@@ -9,7 +9,7 @@ parameter = fast_controller_par();
 
 current_time = datetime('now');
 what_year = year(current_time);what_month = month(current_time);what_day = day(current_time);
-parameter.date_exp_start = datenum(what_year, what_month, what_day, 17,59, 55);
+parameter.date_exp_start = datenum(what_year, what_month, what_day, 14,59, 55);
 LLController = FastController(parameter);
 
 fprintf('Matlab started at %s \n', datestr(now))
