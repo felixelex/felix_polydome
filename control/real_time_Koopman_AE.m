@@ -267,17 +267,5 @@ end
 
 %% Saving
 deepc_controller.date_exp_end = now();
-save('./results/polydome_24-25_05_2021.mat', 'cache', 'y_cl','u_cl','w_cl','h','min','parameter')
-save('./results/koopman_ae_24-25_05_2021.mat', 'koopman_ae_controller')
-
-%% Plotting
-figure
-hold on
-yyaxis left
-plot(cache.cl.u_cl)
-plot(cache.cl.w_cl(1,:))
-plot(cache.cl.y_cl)
-yyaxis right
-plot(cache.cl.w_cl(2,:))
-h = legend('u', 'air temp','y', 'GHI');
-set(h,'fontsize',24, 'interpreter', 'latex')
+save('./results/polydome_01-03_04_2022.mat', 'cache', 'y_cl','u_cl','w_cl','h','min','parameter')
+save('./results/koopman_ae_01-03_04_2022.mat', 'koopman_ae_controller')

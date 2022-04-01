@@ -1,9 +1,9 @@
-function parameter = KoopmanAE_par(example, what_time_start)
+function parameter = KoopmanSINDY_par(example, what_time_start)
 %MPCCONTROLLER_PAR Set the parameters for the MPC controller
 	
 	parameter = controller_par(); %sets Ts to 900
-	parameter.str_ctr_type = 'Koopman_AE_MPC_Controller';
-    parameter.model = "ae";
+	parameter.str_ctr_type = 'Koopman_SINDY_MPC_Controller';
+    parameter.model = "sindy";
     
 	parameter.time_delay = 0; % Model time delay
     parameter.N_pred    = 10*900/parameter.Ts; % # of prediction steps
@@ -61,7 +61,6 @@ function parameter = KoopmanAE_par(example, what_time_start)
 %         parameter.sys.dU_cool = dU_cool; 
         parameter.sys.W = W;
         parameter.sys.nw = nw;  
-        
 	end
     
 	parameter.sys.w_min = [-0.04421053, 0];
@@ -76,7 +75,6 @@ function parameter = KoopmanAE_par(example, what_time_start)
 	parameter.sys.nz = nz;
 	parameter.sys.nx = nx;
     parameter.sys.Y = Y;  
-    
 end%%
 
 %%

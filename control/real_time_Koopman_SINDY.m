@@ -22,7 +22,7 @@ what_year = year(current_time);what_month = month(current_time);what_day = day(c
 what_time_start = datenum(what_year, what_month, what_day, h, min, 0);
 
 %% Getting global parameters
-parameter = KoopmanAE_par(0, what_time_start);
+parameter = KoopmanSINDY_par(0, what_time_start);
 % current_time = datetime('now');
 % what_year = year(current_time);
 % what_month = month(current_time);
@@ -32,8 +32,7 @@ parameter.date_exp_start = now(); %in fraction of days
 fprintf('Matlab started at %s \n', datestr(now))
 
 % Define object of predictive controller
-koopman_ae_controller = KoopmanMPCController(parameter);
-% koopman_ae_controller_backup = KoopmanMPCController(parameter);
+koopman_sindy_controller = KoopmanMPCController(parameter);
 
 N_pred = parameter.N_pred;
 N_ini = parameter.N_ini;
@@ -143,7 +142,7 @@ disp(w_cl(:,1:N_ini))
 fprintf('*============Start of control loop===========*\n\n')
 
 t = N_ini+1;
-koopman_ae_controller.initialize_mpc_controller();
+koopman_sindy_controller.initialize_mpc_controller();
 
 %%
 what_time_computing = what_time_computing - Ts/86400;
@@ -184,11 +183,11 @@ while t <= T_experiment%-N_pred
     fprintf('===Iteration %d, Step 2: get prediction\n', t);
 	fprintf('Time now is: %s \n' ,datestr(now))
     % Update forecast of weather conditions
-    koopman_ae_controller.get_disturbance();
-    w_pred_tem = [koopman_ae_controller.last_forecast.temp; koopman_ae_controller.last_forecast.rad]';
+    koopman_sindy_controller.get_disturbance();
+    w_pred_tem = [koopman_sindy_controller.last_forecast.temp; koopman_sindy_controller.last_forecast.rad]';
 	
-	cache.pred.air_temp(:,t) = koopman_ae_controller.last_forecast.temp';
-	cache.pred.rad(:,t) = (koopman_ae_controller.last_forecast.rad)';
+	cache.pred.air_temp(:,t) = koopman_sindy_controller.last_forecast.temp';
+	cache.pred.rad(:,t) = (koopman_sindy_controller.last_forecast.rad)';
 	cache.pred.time(:,t) = now();
 
     % update initial vectors 
@@ -206,10 +205,10 @@ while t <= T_experiment%-N_pred
 	fprintf('Time now is: %s \n', datestr(now))
 %     try
 %         % Robust MPC
-%         koopman_ae_controller.initialize_koopman_ae_controller(); % Create OptKoopmanAEMPC obj
-%         koopman_ae_controller.set_koopman_ae() % Adding cost and constraints
-%         koopman_ae_controller.get_koopman_representation(y_ini, w_ini, parameter.model) % Get lifting and Koopman operators
-%         [u_opt_tem, u_seq, y_seq] = koopman_ae_controller.solve(t, u_ini, w_ini, y_ini, w_pred_tem);        
+%         koopman_sindy_controller.initialize_koopman_sindy_controller(); % Create OptKoopmanAEMPC obj
+%         koopman_sindy_controller.set_koopman_ae() % Adding cost and constraints
+%         koopman_sindy_controller.get_koopman_representation(y_ini, w_ini, parameter.model) % Get lifting and Koopman operators
+%         [u_opt_tem, u_seq, y_seq] = koopman_sindy_controller.solve(t, u_ini, w_ini, y_ini, w_pred_tem);        
 %     catch e1
 %         try
 %             disp("Primary controller failed with message: " + e1);
@@ -221,10 +220,10 @@ while t <= T_experiment%-N_pred
 %     end   
 	
 	% Soft-constraint MPC
-	koopman_ae_controller.get_koopman_representation(x_ini(end-time_delay,:), w_ini(end-time_delay,:), parameter.model) % Get lifting and Koopman operators
-	koopman_ae_controller.initialize_mpc_controller(); % Create OptKoopmanAEMPC obj
-	koopman_ae_controller.set_mpc_controller(w_pred_tem); % Adding cost and constraints
-	[u_opt_tem, u_seq, y_seq] = koopman_ae_controller.solve();  
+	koopman_sindy_controller.get_koopman_representation(x_ini(end-time_delay,:), w_ini(end-time_delay,:), parameter.model) % Get lifting and Koopman operators
+	koopman_sindy_controller.initialize_mpc_controller(); % Create OptKoopmanAEMPC obj
+	koopman_sindy_controller.set_mpc_controller(w_pred_tem); % Adding cost and constraints
+	[u_opt_tem, u_seq, y_seq] = koopman_sindy_controller.solve();  
 
     % Check the input
     if u_opt_tem > 6
@@ -242,7 +241,7 @@ while t <= T_experiment%-N_pred
 	disp(y_seq')
 	fprintf('Time now is: %s \n' ,datestr(now))
 	
-	solution = koopman_ae_controller.soltion_cache;
+	solution = koopman_sindy_controller.soltion_cache;
 
 	cache.koopman.u_opt_seq(:,t) = solution.u_opt_seq';
 	cache.koopman.y_opt_seq(:,t) = solution.y_opt_seq';
@@ -259,7 +258,7 @@ while t <= T_experiment%-N_pred
 	
 	fprintf('Current computing time : %s, and sending time: %s \n', datestr(what_time_computing), datestr(what_time_sending))
     % Sending to the low-level controller
-    koopman_ae_controller.send_input_to_low_level(u_opt_tem, 1); % 1 = heating mode
+    koopman_sindy_controller.send_input_to_low_level(u_opt_tem, 1); % 1 = heating mode
 
     % Update the current iteration
     t = t + 1; 
@@ -268,7 +267,7 @@ end
 %% Saving
 deepc_controller.date_exp_end = now();
 save('./results/polydome_24-25_05_2021.mat', 'cache', 'y_cl','u_cl','w_cl','h','min','parameter')
-save('./results/koopman_ae_24-25_05_2021.mat', 'koopman_ae_controller')
+save('./results/koopman_ae_24-25_05_2021.mat', 'koopman_sindy_controller')
 
 %% Plotting
 figure
