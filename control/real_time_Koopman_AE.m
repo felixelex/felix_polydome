@@ -14,7 +14,7 @@ addpath('./KoopmanAE')
 addpath(genpath('../utilities'))
 
 % Start time of experiment
-h = 17; 
+h = 18; 
 min = 15;
 TimeZone = 'Europe/Zurich';
 current_time = datetime('now', 'TimeZone', TimeZone);
@@ -33,7 +33,6 @@ fprintf('Matlab started at %s \n', datestr(now))
 
 % Define object of predictive controller
 koopman_ae_controller = KoopmanMPCController(parameter);
-% koopman_ae_controller_backup = KoopmanMPCController(parameter);
 
 N_pred = parameter.N_pred;
 N_ini = parameter.N_ini;

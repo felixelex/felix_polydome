@@ -23,7 +23,7 @@ function parameter = KoopmanAE_par(example, what_time_start)
         Q = 0*eye(1);
         R = 0.1;
         r = 0; % no reference
-        S = 1000000; % soft constraints penalty
+        S = 100; % soft constraints penalty
         
 		time = what_time_start;
 		
