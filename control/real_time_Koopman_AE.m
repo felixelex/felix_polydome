@@ -14,8 +14,8 @@ addpath('./KoopmanAE')
 addpath(genpath('../utilities'))
 
 % Start time of experiment
-h = 15; 
-min = 00;
+h = 17; 
+min = 15;
 TimeZone = 'Europe/Zurich';
 current_time = datetime('now', 'TimeZone', TimeZone);
 what_year = year(current_time);what_month = month(current_time);what_day = day(current_time);
@@ -224,7 +224,7 @@ while t <= T_experiment%-N_pred
 	koopman_ae_controller.get_koopman_representation(x_ini(end-time_delay,:), w_ini(end-time_delay,:), parameter.model) % Get lifting and Koopman operators
 	koopman_ae_controller.initialize_mpc_controller(); % Create OptKoopmanAEMPC obj
 	koopman_ae_controller.set_mpc_controller(w_pred_tem); % Adding cost and constraints
-	[u_opt_tem, u_seq, y_seq] = koopman_ae_controller.solve();  
+	[u_opt_tem, u_seq, y_seq, s_seq] = koopman_ae_controller.solve();  
 
     % Check the input
     if u_opt_tem > 6
@@ -240,6 +240,8 @@ while t <= T_experiment%-N_pred
 	disp(u_seq')
 	fprintf('Optimal output sequence \n');
 	disp(y_seq')
+	fprintf('Optimal slack sequence \n');
+	disp(s_seq')
 	fprintf('Time now is: %s \n' ,datestr(now))
 	
 	solution = koopman_ae_controller.soltion_cache;

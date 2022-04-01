@@ -14,8 +14,8 @@ addpath('./KoopmanAE')
 addpath(genpath('../utilities'))
 
 % Start time of experiment
-h = 15; 
-min = 00;
+h = 16; 
+min = 35;
 TimeZone = 'Europe/Zurich';
 current_time = datetime('now', 'TimeZone', TimeZone);
 what_year = year(current_time);what_month = month(current_time);what_day = day(current_time);
@@ -93,41 +93,6 @@ for t = 1:N_ini
 		cache.cl.w_cl(:,t-1) = w_cl(:,t-1); 
 	end
 end
-
-% % First initialization step
-% t = 1;
-% fprintf('## First initialization step at %s \n', datestr(what_time_computing))
-% tf = what_time_computing;
-% t0 = tf - 900/86400;
-% [y,u,w] = retreive_initial_data(t0, tf); %Get measurements from db
-% y_cl(:,t) = y.value;
-% cache.cl.t(:,t) = t; 
-% cache.cl.y_cl(:,t) = y_cl(:,t); 
-% cache.cl.time(:,t) = now();
-% 
-% what_time_computing = sleep(900, what_time_computing);
-% what_time_sending = sleep(900, what_time_sending);
-% 
-% % All other initialization steps
-% for t = 2:N_ini
-% 	fprintf('## Initialization step %s at %s \n', int2str(t), datestr(what_time_computing))
-% 	tf = what_time_computing;
-% 	t0 = tf - 900/86400;
-% 	[y,u,w] = retreive_initial_data(t0, tf); %Get measurements from db
-% 	y_cl(:,t) = y.value;
-% 	u_cl(:,t-1) = u.value;
-% 	w_cl(:,t-1) = w.value;
-% 	cache.cl.t(:,t) = t; 
-%     cache.cl.y_cl(:,t) = y_cl(:,t); 
-%     cache.cl.u_cl(:,t-1) = u_cl(:,t-1); 
-% 	cache.cl.w_cl(:,t-1) = w_cl(:,t-1); 
-%     cache.cl.time(:,t) = now();
-% 	
-% 	what_time_computing = sleep(900, what_time_computing);
-%     if t<N_ini
-%         what_time_sending = sleep(900, what_time_sending);	
-%     end
-% end
 
 fprintf('\n*============End of initialization===========*\n')
 disp('Initialization outputs:')

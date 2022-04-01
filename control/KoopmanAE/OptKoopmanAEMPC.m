@@ -117,7 +117,7 @@ classdef OptKoopmanAEMPC < handle
 			obj.Cost = obj.Cost + obj.s(obj.N_pred,:)*S*obj.s(obj.N_pred,:)';
         end
  
-        function [u_opt_seq, y_opt_seq] = solve(obj)
+        function [u_opt_seq, y_opt_seq, s_opt_seq] = solve(obj)
         %SOLVE Finds solution to constraint optimization problem.
             options = sdpsettings('verbose',1,'solver', 'gurobi','gurobi.TimeLimit', 10);
             optimize(obj.Constraints, obj.Cost, options);
@@ -127,6 +127,7 @@ classdef OptKoopmanAEMPC < handle
 %             end      
 			u_opt_seq = [double(obj.u(:,:))];
 			y_opt_seq = (double(obj.y(:,:)) - obj.sys.T_min)/obj.sys.T_scale;
+			s_opt_seq = double(obj.s(:,:));
         end        
     end
 end
