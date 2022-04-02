@@ -19,7 +19,7 @@ classdef OptKoopmanAEMPC < handle
             obj.u = sdpvar(N_pred-1, sys.nu);
             obj.z = sdpvar(N_pred, sys.nz);
             obj.y = sdpvar(N_pred, sys.ny);
-            obj.s = sdpvar(N_pred-1, 2*sys.nu);
+            obj.s = sdpvar(N_pred, 2*sys.nu);
             obj.Constraints = [];
             obj.Cost = 0;
         end
@@ -75,13 +75,17 @@ classdef OptKoopmanAEMPC < handle
 			w = w .* w_scale;
 			w = w + w_min;
 			
+            % Slack variable:
+            % s(1:N_pred-1,:) = Slack for input constraints
+            % s(N_pred,:) = Slack for FIRST output constraint
+
             con = [];
             % First iteration
 			con = con + (obj.z(1,:) == obj.sys.z0); %Initial condition
             con = con + (obj.z(2,:) == (obj.sys.A*(obj.z(1,:)') + obj.sys.B*obj.u(1,:) + obj.sys.E*w(1,:)')'); %Dynamics
 			con = con + (obj.y(1,:) == obj.sys.C*(obj.z(1,:)')); %Output dynamics
             con = con + (obj.sys.U_heat.A*obj.u(1,:) <= obj.sys.U_heat.b + diag([1 1])*obj.s(1,:)'); %Input constraints
-            con = con + (obj.sys.Y{1}.A*((obj.y(1,:)-obj.sys.T_min)/obj.sys.T_scale) <= obj.sys.Y{1}.b); %Output constraints
+            con = con + (obj.sys.Y{1}.A*((obj.y(1,:)-obj.sys.T_min)/obj.sys.T_scale) <= obj.sys.Y{1}.b + diag([1 1])*obj.s(obj.N_pred,:)'); %Output constraints
             
             % Following iterations
             for i = 2:obj.N_pred-1
